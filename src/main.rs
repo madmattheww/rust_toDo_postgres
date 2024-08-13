@@ -4,7 +4,7 @@ use tokio_postgres::{NoTls, Error, GenericClient}; // библиотека от�
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    struct Note {
+    struct Note { // структура, представляющая заметку
         name: String,
         number: i32,
         content: String,
@@ -44,7 +44,7 @@ async fn main() -> Result<(), Error> {
     io::stdout().flush().unwrap();
     io::stdin().read_line(&mut input_note).unwrap();
 
-    let notee = Note {
+    let notee = Note { // заполняем структуру
         name: input_name.trim().parse().unwrap(),
         number: input_number.trim().parse().unwrap(),
         content: input_note.trim().parse().unwrap()
@@ -56,7 +56,7 @@ async fn main() -> Result<(), Error> {
     let query = client
         .query("SELECT * FROM Rust_toDo WHERE name = $1 AND number = $2 AND content = $3", &[&notee.name, &notee.number, &notee.content]).await?;
 
-    for row in &query {
+    for row in &query { // вывод
         //let id: i32 = row.get(0);
         let name: &str = row.get(1);
         let number: i32 = row.get(2);
@@ -64,7 +64,7 @@ async fn main() -> Result<(), Error> {
         println!("{}) {}: {}", number, name, content);
     }
 
-    let mut name_all = String::new();
+    let mut name_all = String::new(); // создаем переменную для вывода всех заметок по имени
     println!("Enter name: ");
     io::stdout().flush().unwrap();
     io::stdin().read_line(&mut name_all).unwrap();
@@ -74,7 +74,7 @@ async fn main() -> Result<(), Error> {
     let pink = client
         .query("SELECT * FROM Rust_toDo WHERE name = $1", &[&name_all]).await?;
 
-    for row in &pink {
+    for row in &pink { // вывод всех заметок по имени
         //let id: i32 = row.get(0);
         let name: &str = row.get(1);
         let number: i32 = row.get(2);
