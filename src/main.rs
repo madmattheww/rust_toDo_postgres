@@ -1,11 +1,17 @@
 use std::io; // библиотека для ввода
 use std::io::Write; // библиотека для работы с вводом и выводом данных
-use tokio_postgres::{NoTls, Error}; // библиотека отсутсвия шифрования и возвращает ошибки
+use tokio_postgres::{NoTls, Error, GenericClient}; // библиотека отсутсвия шифрования и возвращает ошибки
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
+    struct Note {
+        name: String,
+        number: i32,
+        content: String,
+    }
+
     // подключение к бд
-    let (client, connection) = tokio_postgres::connect("host=localhost user=postgres password=YOUR_PASSWORD dbname=NAME_DATABASE", NoTls).await?;
+    let (client, connection) = tokio_postgres::connect("host=localhost user=postgres password=86245Qaz dbname=notes", NoTls).await?;
     // проверка на ошибки
     tokio::spawn(async move {
         if let Err(e) = connection.await {
@@ -27,32 +33,63 @@ async fn main() -> Result<(), Error> {
     print!("Enter name: ");
     io::stdout().flush().unwrap();
     io::stdin().read_line(&mut input_name).unwrap();
-    let input_name = input_name.trim();
 
     let mut input_number = String::new(); // ввод номера
     print!("Enter number: ");
     io::stdout().flush().unwrap();
     io::stdin().read_line(&mut input_number).unwrap();
-    let input_number: i32 = input_number.trim().parse().unwrap();
 
     let mut input_note = String::new(); // ввод заметки
     print!("Enter note: ");
     io::stdout().flush().unwrap();
     io::stdin().read_line(&mut input_note).unwrap();
-    let input_note = input_note.trim();
 
+    let notee = Note {
+        name: input_name.trim().parse().unwrap(),
+        number: input_number.trim().parse().unwrap(),
+        content: input_note.trim().parse().unwrap()
+    };
 
     client // вставка введенной информации в таблицу
-        .execute("INSERT INTO Rust_toDo (name, number, content) VALUES ($1, $2, $3)", &[&input_name, &input_number, &input_note],).await?;
+        .execute("INSERT INTO Rust_toDo (name, number, content) VALUES ($1, $2, $3)", &[&notee.name, &notee.number, &notee.content],).await?;
 
-    let stmt = client.prepare("SELECT id, name, number, content FROM Rust_toDo").await?;
-    for row in client.query(&stmt, &[]).await? {
-        let id: i32 = row.get(0);
+    let query = client
+        .query("SELECT * FROM Rust_toDo WHERE name = $1 AND number = $2 AND content = $3", &[&notee.name, &notee.number, &notee.content]).await?;
+
+    for row in &query {
+        //let id: i32 = row.get(0);
         let name: &str = row.get(1);
         let number: i32 = row.get(2);
         let content: &str = row.get(3);
-        println!("{}, {}, {}, {}", id, name, number, content); // выводит id, имя, номер, заметку в консоль
+        println!("{}) {}: {}", number, name, content);
+    }
+
+    let mut name_all = String::new();
+    println!("Enter name: ");
+    io::stdout().flush().unwrap();
+    io::stdin().read_line(&mut name_all).unwrap();
+    name_all = name_all.trim().to_string();
+
+
+    let pink = client
+        .query("SELECT * FROM Rust_toDo WHERE name = $1", &[&name_all]).await?;
+
+    for row in &pink {
+        //let id: i32 = row.get(0);
+        let name: &str = row.get(1);
+        let number: i32 = row.get(2);
+        let content: &str = row.get(3);
+        println!("{}) {}: {}", number, name, content);
     }
 
     Ok(())
 }
+
+/*let stmt = client.prepare("SELECT id, name, number, content FROM Rust_toDo").await?;
+for row in client.query(&stmt, &[]).await? {
+    let id: i32 = row.get(0);
+    let name: &str = row.get(1);
+    let number: i32 = row.get(2);
+    let content: &str = row.get(3);
+    println!("{}) {}: {}", number, name, content); // выводит id, имя, номер, заметку в консоль
+}*/
