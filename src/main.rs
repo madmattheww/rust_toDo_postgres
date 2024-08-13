@@ -82,7 +82,7 @@ async fn main() -> Result<(), Error> {
         println!("{}) {}: {}", number, name, content);
     }
 
-    Ok(())
+    Ok(()) // Ok)))
 }
 
 /*let stmt = client.prepare("SELECT id, name, number, content FROM Rust_toDo").await?;
