@@ -11,7 +11,7 @@ async fn main() -> Result<(), Error> {
     }
 
     // подключение к бд
-    let (client, connection) = tokio_postgres::connect("host=localhost user=postgres password=86245Qaz dbname=notes", NoTls).await?;
+    let (client, connection) = tokio_postgres::connect("host=localhost user=postgres password=YOUR_PASSWORD dbname=NAME_DB", NoTls).await?;
     // проверка на ошибки
     tokio::spawn(async move {
         if let Err(e) = connection.await {
